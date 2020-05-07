@@ -8,7 +8,7 @@ library(rvest) # Web scraping
 library(tidyverse) # Data wrangling
 library(RCurl) # Download files from the internet
 
-demo_mode <- FALSE # Skip the the code that takes more than a few minutes to run
+demo_mode <- TRUE # Skip the the code that takes more than a few minutes to run
 
 ```
 
@@ -85,7 +85,7 @@ for(i in 1:nrow(infoboxes)) {
 rm(i)
 
 # Save the results, so you don't have to run the loop yourself
-saveRDS(infoboxes, "infoboxes_rated.rds")
+# saveRDS(infoboxes, "infoboxes_rated.rds") # stopped at #5290
 
 ```
 
