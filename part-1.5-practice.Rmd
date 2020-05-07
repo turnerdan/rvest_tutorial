@@ -22,7 +22,10 @@ Modify the rule below to list the titles of all the blog posts on the first page
 ```{r Challenge 1}
 
 url <- "https://forum.thegradcafe.com/blogs/"
-rule <- "#ipsLayout_mainArea > section > div:nth-child(8) > article:nth-child(1) > div.cBlog_grid_item__body.ipsPad > div:nth-child(1) > h2 > span > a"
+
+# rule <- "#ipsLayout_mainArea > section > div:nth-child(8) > article:nth-child(1) > div.cBlog_grid_item__body.ipsPad > div:nth-child(1) > h2 > span > a"
+
+rule <- "#ipsLayout_mainArea > section > div > article:nth-child(2) > div.cBlog_grid_item__body.ipsPad > div:nth-child(2) > div > div.ipsPhotoPanel.ipsPhotoPanel_notPhone.ipsPhotoPanel_tiny > div > p:nth-child(1) > a"
 
 read_html(url) %>% 
   html_nodes(rule) %>%
