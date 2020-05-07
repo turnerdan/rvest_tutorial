@@ -8,7 +8,7 @@ library(rvest) # Web scraping
 library(tidyverse) # Data wrangling
 library(RCurl) # Download files from the internet
 
-demo_mode <- TRUE # Skip the the code that takes more than a few minutes to run
+demo_mode <- FALSE # Skip the the code that takes more than a few minutes to run
 
 ```
 
@@ -39,7 +39,7 @@ In the next code chunk, I scan each film's Wikipedia page to look for a link to 
 
 ```{r Scrape IMDB ratings, message=FALSE, warning=FALSE}
 # Reduce the dimensions
-infoboxes <- subset(infoboxes, select = c(1:24, 31, 36, 42, 53) ) # only the cols that I want
+infoboxes <- subset(infoboxes, select = c(1:24) ) # only the cols that I want
 
 # Scrape the Wikipedia pages for IMDB links and ratings
 # Notice all of the error handling that I had to incorporate! There are many ways for web scraping to fail.
@@ -47,6 +47,9 @@ infoboxes <- subset(infoboxes, select = c(1:24, 31, 36, 42, 53) ) # only the col
 for(i in 1:nrow(infoboxes)) {  
   
   if(demo_mode == TRUE){ break }  # this takes a while
+  
+    if(all( !is.null(infoboxes$imdb_rating[i]),       # wait until we have the first rating
+           !is.na(infoboxes$imdb_rating[i]) )){ next }# skip rows we've probably crawled (has rating)
   
   rel_url <- infoboxes$links[i] # grab the relative url
   
@@ -69,22 +72,20 @@ for(i in 1:nrow(infoboxes)) {
   # extract the rating using regex
   imdb_rating <- read_html( imdb_url ) %>%
     html_nodes("div.ratingValue") %>% # the rating box, out of 10
-    html_text() %>% #"\n3.2/10"
+    html_text() %>% #"\n3.2/10" let's use regex to extract "3.2" from this string
     str_replace_all("[/10\n]" , "") %>% # delete the denominator and new line, if they are there
     parse_number() # turn the string into a number
 
   if(is_empty(imdb_rating) == FALSE) {
         infoboxes[i, "imdb_rating"] <- imdb_rating # if we find a rating, write it
     } 
-
-  if(i > 249) { break } # you get the idea
   
   rm(rel_url, full_url, ext_urls, imdb_url, imdb_rating)
 }
 rm(i)
 
 # Save the results, so you don't have to run the loop yourself
-# saveRDS(infoboxes, "infoboxes_rated.rds")
+saveRDS(infoboxes, "infoboxes_rated.rds")
 
 ```
 
@@ -106,12 +107,12 @@ rating.by.state <- infoboxes %>%
 head(rating.by.state)
 ```
 
-Now that you have seen what it takes to extract a single number from a webpage, let's see how we can extract informtion from nothing but text on the web.
+Now that you have seen what it takes to extract a single number from a webpage, let's extract some spans of text.
 
 
 ## 2.5 Scrape and interpret text (and text-like) data
 
-Say that we want to look for patterns in the scripts for these films. You can imagine testing a hypothesis about whether some linguistic features predict higher ratings, or whether budget or setting leads to higher ratings or earnings -- quetsions like these.
+Say that we want to look for patterns in the scripts for these films. You can imagine testing a hypothesis about whether some linguistic features predict higher ratings, or whether budget or setting leads to higher ratings or earnings. How do we explore that kind of question?
 
 *Let's extract some information from the scripts of these films from The Internet Movie Script Database (IMSDb).*
 

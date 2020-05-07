@@ -14,6 +14,7 @@ library(RCurl) # Download files from the internet
 
 Below you will find some web scraping challenges. Try out the functions I covered in part 1.
 
+These challenges are for a website we haven't scraped yet, thegradcafe.com, which is primarilly a forum for prospective and current grad students. You might remember browsing it to find out when people were getting notifications. *We will scrape its blog.*
 
 ## Challenge 1
 Modify the rule below to list the titles of all the blog posts on the first page found at the url:
