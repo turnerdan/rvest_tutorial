@@ -7,7 +7,9 @@ author: Dan Turner (dturner@u.northwestern.edu)
 
 **Welcome to my tutorial on the basic of scraping the web using R!**
 
-This is an *R Notebook* that will help you to make sure that your computer is ready for the workshop. Run the code blocks by pressing the *Run* button while the curser is in that code chunk, or by the key combination *Cmd+Shift+Enter*. Each code chunk behaves kind of like an isolated `.R` script file, but the results appear beneath the code chunk, instead of in the console.
+This is an *R Notebook* that will help you to make sure that your computer is ready for the workshop.
+
+Run the code blocks by pressing the *Run* button while the curser is in that code chunk, or by the key combination *Cmd+Shift+Enter*. Each code chunk behaves kind of like an isolated `.R` script file, but the results appear beneath the code chunk, instead of in the console.
 
 *Try it out with the code chunk below.*
 

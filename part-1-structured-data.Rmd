@@ -16,14 +16,18 @@ demo_mode <- TRUE # Skip the the code that takes more than a few minutes to run
 
 ## 1.1 Inspecting the page source
 
-Before we can scrape websites we need to understand how they are put together. Code for websites is extremely variable in quality and organization, and so the first step to extracting data from a webpage is exploring how the data is stored.
+Before we can scrape websites we need to understand how they are put together. Code for websites is extremely variable in quality and organization, and so the first step to extracting data from a webpage is exploring how the data is encoded/stored/displayed.
 
-We will use a web inspector tool to do this. Follow the instructions depending on your browser of choice, in case you have not used such a tool before.
+We will use a *web inspector tool* to do this. Follow the instructions depending on your browser of choice, in case you have not used such a tool before.
+
+If you would rather not use a browser, try using SelectorGadget: https://selectorgadget.com
+
 
 *How to open Inspector view*
 (Tested on Chrome, Safari, Edge and Firefox)
 
 Right-click and element on the web page you want to inspect and click 'Inspect'/'Inspect element'. This should open a new pane or window that shows the HTML code corresponding to the element you selected.
+
 
 *Using Inspector view*
 You can browse the code and see how it was interpreted into the visual layout that you see, you can see the CSS style properties for every element, and you can even test changes to any of the website's code in realtime.
@@ -32,20 +36,24 @@ Even if you never use it, it's good to know such a tool exists, since scammers u
 
 We will use CSS and HTML tags to crawl the webpages and scrape only the data we want (as much as possible).
 
+
 *HTML versus CSS*
 A quick note about how webpages work. Most websites use two major file types, HTML and CSS. HTML (hyper text markup language) is a data file that contains code representing text, links to pictures, tables of data, and everything else. CSS (cascading style sheets) contains code that browsers use to visually style the HTML. In the old days, HTML code would have tags for bold <b> and italics <em> and so on, but not anymore. For a long time, it has been best practices to do all styling using CSS classes.
 
-We can scrape elements of websites using their HTML (hierarchically grouped) OR CSS (stylistically grouped). 
+We can scrape elements of websites using their HTML (hierarchically grouped) OR CSS (stylistically grouped). Adanced users might get use out of xpath as well, but that is beyond the scope of this workshop (sorry).
 
 ## 1.2 Principles of scraping
 Because the code for websites is often poorly written (sorry, webdevs), I want to offer some guidelines to help decide when and how to develop a web scraping solution for your project.
 
 Rule 1. Don't scrape what you can download
 Rule 2. Don't scrape what you cannot easilly clean
-Rule 3 ... pending ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Rule 3. Convert data into native data types ASAP (from strings)
+
 
 ## 1.3 Scraping Wikipedia
-For our first example, we will scrape some lists from Wikipedia. Let's compare a list of films set in Minnesota (A) to a list of films actually shot in Minnesota (B). I want to use these lists to answer the simple question, do films shot in Minnesota tend to be set in Minnesota? (Someday I want to make a map of North America showing how likely it is for people living in an area to have seen a film depicting that area -- just for fun.)
+For our first example, we will scrape some lists from Wikipedia.
+
+Let's compare a list of films set in Minnesota (A) to a list of films actually shot in Minnesota (B). I want to use these lists to answer the simple question, do films shot in Minnesota tend to be set in Minnesota? (Someday I want to make a map of North America showing how likely it is for people living in an area to have seen a film depicting that area -- just for fun.)
 
 Link A. https://en.wikipedia.org/wiki/Category:Films_set_in_Minnesota
 Link B. https://en.wikipedia.org/wiki/Category:Films_shot_in_Minnesota
@@ -68,6 +76,7 @@ For my simple research question, we only need the names of the films, but if we 
 
 *With this in mind, let's scrape Link A and Link B to get the titles of the films (the text in the <a> tag) and their links (the <a> tag's 'href').*
 
+
 ## 1.4 Scraping the movie titles and links
 
 ```{r}
@@ -76,12 +85,12 @@ films_set_html <- read_html( "https://en.wikipedia.org/wiki/Category:Films_set_i
 films_shot_html <- read_html( "https://en.wikipedia.org/wiki/Category:Films_shot_in_Minnesota" )
 
 # Peek
-films_shot_html
+word( html_text( films_shot_html ), 100, 200)
 ```
 
-If the packages are installed correctly, you should see a few lines from the second link.
+If the packages are installed correctly, you should see the list punctuated by new line tags (`\n`),
 
-Next we will scrape the data we want using by using the information from Inspector View to write some inclusion/exclusion rules.
+*Next we will scrape the data we want using by using the information from Inspector View to write some inclusion/exclusion rules.*
 
 Usually you can simply right-click an example of the information you want in Inspector View and use that to build your rule. When you right-click the line, select 'Copy' and 'Selector Path'. On the page of films set in Minnesota, this gives us:
 
@@ -134,6 +143,7 @@ rm(films_set_html, films_set_titles, films_set_links)
 *Write the code to scrape the titles and links for the 'films_shot' list.*
 
 ```{r}
+
 # Titles, same as above
 films_shot_titles <- films_shot_html %>%
   html_nodes('#mw-pages > div > div > div > ul > li > a') %>% 
@@ -168,6 +178,7 @@ length(setdiff(films_set_mn$title, films_shot_mn$title)) / nrow(films_shot_mn)
 ```
 
 A little more than half of the films shot in MN are not set in MN.
+
 
 ## 1.7 Diving a little deeper
 
@@ -209,7 +220,6 @@ w.scrape <- function(full_url, rule){
   
   return ( df)
 }
-# x <- w.scrape("https://en.wikipedia.org/wiki/Category:Films_set_in_Chicago", child_rule)
 
 # return the urls of the next pages
 w.tree <- function(rel_url){
@@ -322,6 +332,8 @@ for(link in rel_link_list){
 
     rm(temp)
     
+    Sys.sleep(0.5) # pause 1/2 second before scraping the next page
+    
   }#inner
 }#outer
 
@@ -353,7 +365,14 @@ For example, the film Airborne (https://en.wikipedia.org/wiki/Airborne_(1993_fil
 
 ```
 
-Let's quickly extract this data for all of our films.
+Let's quickly extract this data for all of our films. I say "quickly" in terms of the code writing. This actually took a couple of hours to run, which is why I saved the results for everyone to load and explore. 
+In fact, I had to run the script a couple of times until it could find all of the pages it was looking for. You can see the logic here.
+
+```
+if( !is.na(geo_content$`Release date`[i]) ){ next } # skip rows we've probably crawled
+```
+
+Because almost every film seemed to have an infobox, and most infoboxes had the release date, this seemed like the best way to tell whether we should skip a row or not.
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -385,10 +404,15 @@ w.infobox <- function( full_link ){
   
 }#/w.infobox
 
+# Now we will fetch every infobox and combine it itteratively with our main dataframe
+
 # We could apply this function and get our data faster, but I prefer to loop because I don't want to spike the traffic
 for(i in 1:nrow(geo_content)){
   
   if(demo_mode == TRUE){ break }  # this takes a while
+  
+  if(all( !is.null(geo_content$`Release date`[i]),       # don't evaluate release date until we have one
+           !is.na(geo_content$`Release date`[i]) )){ next }# skip rows we've probably crawled
   
   print(paste0("#", i, ": ", geo_content$titles[i] )) # status message
   
@@ -419,39 +443,39 @@ for(i in 1:nrow(geo_content)){
     
     geo_content[i, col] <- infobox[1, col] # add all the information we can find
     
-  }#for
+    # Sys.sleep(0.5) # pause 1/2 second before scraping the next page
+    
+  }#innerfor
 
   rm(df_vars, df_vals, infobox, col)
-  
-  if(i == 250) { break } # you get the idea
-  
-}
+
+}#outerfor
 rm(i)
 
-# save the progress
-# saveRDS(geo_content, "geo_content_infoboxes.rds")
+# save the data so everyone can just load it
+saveRDS(geo_content, "geo_content_infoboxes.rds")
 
 ```
 
-In the next code chunk, we load the result and see how we did.
+In the next code chunk, we load the result (it took some time to run) and see how we did.
 
 ```{r}
 # load the progress
-geo_content_infoboxes <- read_rds("geo_content_infoboxes.rds")
+geo_content_infoboxes.2 <- read_rds("geo_content_infoboxes.rds")
 
 # what headers did we extract from the infoboxes?
 colnames(geo_content_infoboxes)
 ```
 
-Some columns make sense, but others do not. This is because some movie pages have infoboxes that are formatted a little differently. We will talk about how to handle this ubiquitous problem on the other side of the break.
+Some columns make sense, but others do not. This is because some movie pages have infoboxes that are formatted a little differently. We will talk about how to handle this ubiquitous problem on the other side of the break. Also, I will ask what you would do to improve our Wikipedia infobox scraping script. I have a few ideas, but I want to hear yours!
 
-## 1.11 Break time!
 
-On the other side of the break, I will ask what you would do to improve our Wikipedia infobox scraping script. I have a few ideas, but I want to hear yours!
+## 1.11 Time to test your skills!
+Before going onto Part 2, we will take a break from my examples for you to practice your skills. In Part 2, I'll show some more tips and tricks for scraping text and other unstructured data.
 
 ```{r final cleanup, message=FALSE, warning=FALSE}
 
-# removing everything made in this file -- reloading what we need in the next part
+# removing everything made in this file -- we will load what we need in the next part
 rm(films_set_chicago, films_set_mn, films_shot_mn, 
    geo_content, geo_content_infoboxes, child_rule, 
    parent_rule, demo_mode, w.infobox, w.list,
