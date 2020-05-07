@@ -28,6 +28,7 @@ If you would rather not use a browser, try using SelectorGadget: https://selecto
 
 Right-click and element on the web page you want to inspect and click 'Inspect'/'Inspect element'. This should open a new pane or window that shows the HTML code corresponding to the element you selected.
 
+_Take a moment to open inspector view on your browser of choice._
 
 *Using Inspector view*
 You can browse the code and see how it was interpreted into the visual layout that you see, you can see the CSS style properties for every element, and you can even test changes to any of the website's code in realtime.
@@ -35,7 +36,6 @@ You can browse the code and see how it was interpreted into the visual layout th
 Even if you never use it, it's good to know such a tool exists, since scammers use this method to extort money from people over the internet every day. 
 
 We will use CSS and HTML tags to crawl the webpages and scrape only the data we want (as much as possible).
-
 
 *HTML versus CSS*
 A quick note about how webpages work. Most websites use two major file types, HTML and CSS. HTML (hyper text markup language) is a data file that contains code representing text, links to pictures, tables of data, and everything else. CSS (cascading style sheets) contains code that browsers use to visually style the HTML. In the old days, HTML code would have tags for bold <b> and italics <em> and so on, but not anymore. For a long time, it has been best practices to do all styling using CSS classes.
@@ -51,7 +51,7 @@ Rule 3. Convert data into native data types ASAP (from strings)
 
 
 ## 1.3 Scraping Wikipedia
-For our first example, we will scrape some lists from Wikipedia.
+*For our first example, we will scrape some lists from Wikipedia.*
 
 Let's compare a list of films set in Minnesota (A) to a list of films actually shot in Minnesota (B). I want to use these lists to answer the simple question, do films shot in Minnesota tend to be set in Minnesota? (Someday I want to make a map of North America showing how likely it is for people living in an area to have seen a film depicting that area -- just for fun.)
 
@@ -71,10 +71,11 @@ Here is a quick breakdown of these tags:
 `ul` means 'unorderd list' = bullet point list
 `li` means 'list item' = individual bullet point
 `a` means 'anchor link' = normal hyperlink
+`class` is for CSS styling, which we refer to with `#` and `.` like `#mw-category-group`
 
 For my simple research question, we only need the names of the films, but if we wanted to know more about these films later (say, their release date or budget), we might want the link to their Wikipedia page. Check out one of the movie's pages to get a sense for the data potential: https://en.wikipedia.org/wiki/Purple_Rain_(film)
 
-*With this in mind, let's scrape Link A and Link B to get the titles of the films (the text in the <a> tag) and their links (the <a> tag's 'href').*
+*With this in mind, let's scrape films set and shot in Minnesota to get the titles of the films (the text in the <a> tag) and their links (the <a> tag's 'href').*
 
 
 ## 1.4 Scraping the movie titles and links
@@ -287,7 +288,9 @@ We could apply this function to other categories one at a time, but we could als
 
 Minnesota versus Chicago is not a fair comparison. Minnesota is a whole state (5.64M) and Chicago (2.7M) is only a city.
 
-We could scrape every city or every state, or both, using the same basic methods as we employed for the Chicago list and the URLS below:
+We could scrape every city or every state, or both, using the same basic methods as we employed for the Chicago list and the URLS. Doing so means touching many more HTML pages, increasing the chances we will hit an error. Flow control logic is key here, so you will see heavy use of `next` and `break`, depending on whether I want the loop to skip the current item, or stop altogether.
+
+*The code chunk below will scrape all of the state-level pages of films on Wikipedia.*
 
 ```{r message=FALSE, warning=FALSE}
 
