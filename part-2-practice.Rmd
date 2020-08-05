@@ -1,0 +1,84 @@
+---
+title: "Part 2 -- Web scraping practice"
+author: Dan Turner (dturner@u.northwestern.edu)
+---
+
+```{r run this first}
+library(rvest) # Web scraping
+library(tidyverse) # Data wrangling
+library(RCurl) # Download files from the internet
+
+```
+
+# Part 2: Web scraping practice
+
+Below you will find some web scraping challenges that cover important concepts from Part 1.
+
+These challenges are for a website we haven't scraped yet, thegradcafe.com, which is primarily a forum for prospective and current grad students. You might remember browsing it to find out when people were getting notifications.
+
+We will scrape its blog.
+
+
+
+## Challenge 1
+Modify the rule below to list the titles of all the blog posts on the first page found at the url:
+
+```{r Challenge 1}
+
+url <- "https://forum.thegradcafe.com/blogs/"
+
+rule <- "#ipsLayout_mainArea > section"
+
+read_html(url) %>% 
+  html_nodes(rule) %>%
+  html_text()
+
+```
+
+
+
+## Challenge 2
+Modify the rule below to make a dataframe consisting of the titles, links, author, and date. The author and date will require you to use Inspector view to build and test two more rules.
+
+```{r Challenge 2}
+
+url <- "https://forum.thegradcafe.com/blogs/"
+rule <- "#ipsLayout_mainArea > section > div > article > div.cBlog_grid_item__body.ipsPad > div > h2 > span > a"
+
+author_rule <- ""
+
+date_rule <- ""
+
+titles <- read_html(url) %>% 
+  html_nodes(rule) %>%
+  html_text()
+
+links <- read_html(url) %>% 
+  html_nodes(rule) %>%
+  html_attr('href')
+
+# authors <- 
+
+# dates <- 
+
+# df <- data.frame(titles, links, authors, dates, stringsAsFactors = FALSE)
+
+```
+
+
+
+## Challenge 3
+Now that we can extract data from one page, let's make sure we can get every page. Write a function that lists every page of blog posts.
+
+For ideas, take a look at the URL structure:
+
+```
+<a href="https://forum.thegradcafe.com/blogs/?page=2" data-page="2">2</a>
+```
+
+```{r Challenge 3}
+# for a sample answer, see the repo
+
+## YOUR CODE HERE
+
+```
