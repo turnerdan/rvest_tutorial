@@ -20,15 +20,16 @@ Now let's scrape some details about each of the films.
 
 If we use the Inspector view on one of the film's pages, we can see that there is an HTML table that floats on the right side with some useful data, like budget and cast. Let's extract that for each of the films we found while scraping the category lists.
 
-For example, the film Airborne (https://en.wikipedia.org/wiki/Airborne_(1993_film) which is set in Cincinnati, Ohio:
+For example, the film Airborne (https://en.wikipedia.org/wiki/Airborne_(1993_film)) which is set in Cincinnati, Ohio:
 
 ```{r}
 
-  # get titles
-  test <- read_html( "https://en.wikipedia.org/wiki/Airborne_(1993_film)" ) %>%
-    html_nodes( "#mw-content-text > div > table.infobox.vevent" ) %>% # directly copied from Inspector view
-    html_table(header = TRUE) %>% # html_table() interprets HTML tables into R dataframes
-    first()
+# get titles/headings from the info. box
+test <- read_html("https://en.wikipedia.org/wiki/Airborne_(1993_film)") %>%
+  html_nodes("#mw-content-text > div > table.infobox.vevent") %>% # directly copied from Inspector view
+  html_table(header = TRUE) %>% # html_table() interprets HTML tables into R dataframes
+  head()
+test
 
 ```
 
@@ -134,7 +135,7 @@ In the next code chunk, we load the result (it took some time to run) and see ho
 geo_content <- read_rds("geo_content_infoboxes.rds")
 
 # what headers did we extract from the infoboxes?
-colnames(geo_content)
+#colnames(geo_content)
 ```
 
 Some columns make sense, but others do not. This is because some movie pages have infoboxes that are formatted a little differently.
@@ -155,6 +156,9 @@ In the next code chunk, I scan each film's Wikipedia page to look for a link to 
 *In the next code chunk, we add a new column to our dataset for the IMDB rating.*
 
 ```{r Scrape IMDB ratings, message=FALSE, warning=FALSE}
+
+infoboxes <- geo_content
+
 # Reduce the dimensions
 infoboxes <- subset(infoboxes, select = c(1:24) ) # only the cols that I want
 
@@ -185,7 +189,7 @@ for(i in 1:nrow(infoboxes)) {
          url.exists( imdb_url ) == FALSE)){ next } # if no IMDB link in external URLs
   
   print(paste0("#", i, ": IMDB page found for ", infoboxes$titles[i])) # status message
-
+  
   # extract the rating using regex
   imdb_rating <- read_html( imdb_url ) %>%
     html_nodes("div.ratingValue") %>% # the rating box, out of 10
@@ -193,16 +197,19 @@ for(i in 1:nrow(infoboxes)) {
     str_replace_all("[/10\n]" , "") %>% # delete the denominator and new line, if they are there
     parse_number() # turn the string into a number
 
-  if(is_empty(imdb_rating) == FALSE) {
-        infoboxes[i, "imdb_rating"] <- imdb_rating # if we find a rating, write it
+if(is_empty(imdb_rating) == FALSE) {
+        infoboxes[i, "imdb_rating"] <- imdb_rating[1] # if we find a rating, write it
     } 
   
   rm(rel_url, full_url, ext_urls, imdb_url, imdb_rating)
 }
 rm(i)
+#__next > main > div > section.ipc-page-background.ipc-page-background--base.sc-304f99f6-0.fSJiHR > section > div > section > section > div.sc-4e4cc5f9-3.dDRspk > div.sc-3a4309f8-0.bjXIAP.sc-b7c53eda-1.iIQkEw > div > div > a > span > div > div.sc-bde20123-0.dLwiNw > div.sc-bde20123-2.cdQqzc > span.sc-bde20123-1.cMEQkK
+
+#__next > main > div > section.ipc-page-background.ipc-page-background--base.sc-304f99f6-0.fSJiHR > section > div:nth-child(5) > section > section > div.sc-4e4cc5f9-3.dDRspk > div.sc-3a4309f8-0.bjXIAP.sc-b7c53eda-1.iIQkEw > div > div:nth-child(1) > a > span > div > div.sc-bde20123-0.dLwiNw > div.sc-bde20123-2.cdQqzc > span.sc-bde20123-1.cMEQkK
 
 # Save the results, so you don't have to run the loop yourself
-# saveRDS(infoboxes, "infoboxes_rated.rds") # stopped at #5290
+#saveRDS(infoboxes, "infoboxes_rated.rds") # stopped at #5290
 
 ```
 
@@ -226,6 +233,7 @@ rating.by.state <- infoboxes %>%
 
 # peek
 head(rating.by.state)
+
 ```
 
 Now that you have seen what it takes to extract a single number from a webpage, let's extract some spans of text.
@@ -255,11 +263,11 @@ https://www.imsdb.com/all%20scripts/
 ```{r}
 
 # Let's start by getting every link and its text
-imsdb_titles <- read_html( "https://www.imsdb.com/all%20scripts/" ) %>%
+imsdb_titles <- read_html("https://imsdb.com/all-scripts.html") %>%
     html_nodes("td  p  a") %>% # all external links on the page
     html_text() 
 
-imsdb_links <- read_html( "https://www.imsdb.com/all%20scripts/" ) %>%
+imsdb_links <- read_html("https://imsdb.com/all-scripts.html") %>%
     html_nodes("td  p  a") %>% # all external links on the page
     html_attr('href')
 

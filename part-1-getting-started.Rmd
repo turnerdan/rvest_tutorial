@@ -14,6 +14,8 @@ This is an *R Notebook* that has code chunks inline with explanations. Run the c
 library(rvest) # Web scraping
 library(tidyverse) # Data wrangling
 library(RCurl) # Downloading files from the internet
+#install.packages("stringr")
+library(stringr)
 
 demo_mode <- TRUE # Skip the the code that takes more than a few minutes to run
 
@@ -95,17 +97,18 @@ For other curious people, here's a quick link to the trailer for the Purple Rain
 
 ```{r}
 # Download the html of the two links into R variables
-films_set_html <- read_html( "https://en.wikipedia.org/wiki/Category:Films_set_in_Minnesota" )
+films_set_html <- read_html("https://en.wikipedia.org/wiki/Category:Films_set_in_Minnesota")
 
-films_shot_html <- read_html( "https://en.wikipedia.org/wiki/Category:Films_shot_in_Minnesota" )
+films_shot_html <- read_html("https://en.wikipedia.org/wiki/Category:Films_shot_in_Minnesota")
 
-# Peek
-word( html_text( films_shot_html ), 100, 200)
+# Peek... word is from the stringr package and extracts words from text-based, string objects... to get the html object/link converted to a text-based string object we used html_text from rvest
+word(html_text(films_shot_html), 100, 200)
+
 ```
 You should see the list punctuated by new line tags (`\n`),
 
 ## Use web developer tools
-Next we will scrape the data we want using by using the information from Inspector View to write some inclusion/exclusion rules. Usually you can simply right-click an example of the information you want in Inspector View and use that to build your rule. *When you right-click the line, select 'Copy' and 'Selector Path'.* On the page Films Set in Minnesota this gives us:
+Next we will scrape the data we want using by using the information from Inspector View to write some inclusion/exclusion rules. Usually you can simply right-click an example of the information you want in Inspector View and use that to build your rule. *When you right-click the line in Inspector View, hover over 'Copy' and click 'Copy Selector'.* On the page Films Set in Minnesota this gives us:
 
 ```
 #mw-pages > div > div > div:nth-child(1) > ul > li:nth-child(1) > a
@@ -182,10 +185,11 @@ rm(films_shot_html, films_shot_titles, films_shot_links)
 ```{r}
 
 # Films shot in MN, set in MN
+# intersect will find the films that are both shot and set in Minnesota
 length(intersect(films_shot_mn$title,
                  films_set_mn$title)) / length(films_shot_mn)
-
 # Films shot in MN, NOT set in MN
+# setdiff will find all the films shot in Minnesota that AREN'T set in Minnesota... it turns out there are more of them
 length(setdiff(films_shot_mn$title,
                films_set_mn$title)) / length(films_shot_mn)
 
@@ -203,7 +207,8 @@ Let's get a little closer to Northwestern and get the titles and links for films
 
 ```{r}
 # same as before
-films_set_chicago <- read_html( "https://en.wikipedia.org/wiki/Category:Films_set_in_Chicago" ) %>%
+
+films_set_chicago <- read_html("https://en.wikipedia.org/wiki/Category:Films_set_in_Chicago") %>%
   html_nodes('#mw-pages > div > div > div > ul > li > a') %>%
   html_text()
 
@@ -250,7 +255,7 @@ w.tree <- function(rel_url){
   to.continue <- read_html( full_url ) %>% 
              html_node("#mw-pages > a:last-child") %>% # the 'next page' link is the last link in this div
              html_text() %>%
-             all_equal("next page")
+             all.equal("next page")
   
   # if so, get the link
   if(to.continue == TRUE){
@@ -264,6 +269,7 @@ w.tree <- function(rel_url){
     return(next.page)
   }
 }
+
 
 # convenience function to make a list of urls and their text from wikipedia category pages
 w.list <- function(rel_url, rule){
@@ -292,12 +298,12 @@ The reason why we're using loops is so that we can pause between iterations usin
 child_rule = "#mw-pages li a"
 
 # let's see how it works
-films_set_chicago <- w.list( rel_url = "/wiki/Category:Films_set_in_Chicago",
-                               rule = child_rule )
+films_set_chicago <- w.list(rel_url = "/wiki/Category:Films_set_in_Chicago",
+                            rule = child_rule)
 
 ```
 
-I get 392 films, which means we have just under 2 pages of items.
+I get 400 films, which means we have just under 2 pages of items.
 
 That should be all of them!
 
@@ -319,15 +325,15 @@ rel_link_list <- c( "/wiki/Category:Films_set_in_the_United_States_by_state",
 
 # using the Inspector tool on 'Films set in Akron, Ohio' I copied the selector path
 # I also had to delete the 'child' selectors, as I did before
-parent_rule <- '#mw-subcategories li a'
+#parent_rule <- '#mw-subcategories li a'
+parent_rule <- '#mw-subcategories > div > div > div > ul > li > div > div.CategoryTreeItem > a'
 child_rule = "#mw-pages li a"
 
 # loop all the geographical area links to get all the list page links
-
 # scrape all the geo categories
 for(link in rel_link_list){
   
-  if(demo_mode == TRUE){ break }  # this takes a while
+  if(demo_mode == FALSE){ break }  # this takes a while
   
   geo_links <- w.list( rel_url = link, rule = parent_rule )
   

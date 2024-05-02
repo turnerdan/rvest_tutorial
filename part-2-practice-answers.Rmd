@@ -17,15 +17,32 @@ Modify the rule below to list the titles of all the blog posts on the first page
 
 ```{r Challenge 1 answer}
 
-url <- "https://forum.thegradcafe.com/blogs/"
+url <- "https://forum.thegradcafe.com/"
 
 # rule <- "#ipsLayout_mainArea > section > div:nth-child(8) > article:nth-child(1) > div.cBlog_grid_item__body.ipsPad > div:nth-child(1) > h2 > span > a"
 
-rule <- "#ipsLayout_mainArea > section > div.cBlog_grid_row.cBlog_grid_row--primary > article > div.cBlog_grid_item__body.ipsPad > div > h2 > span > a"
+#rule <- "#ipsLayout_mainArea > section > div.cBlog_grid_row.cBlog_grid_row--primary > article > div.cBlog_grid_item__body.ipsPad > div > h2 > span > a"
 
+## ATP
+# headings
+rule <- "#ipsLayout_mainArea > section > ol > li > ol > li > div.ipsDataItem_main > h4 > a"
 read_html(url) %>% 
   html_nodes(rule) %>%
   html_text()
+#subheadings
+rule2 <- "#ipsLayout_mainArea > section > ol > li > ol > li > div.ipsDataItem_main > ul > li"
+read_html(url) %>% 
+  html_nodes(rule2) %>%
+  html_text()
+## putting it together as it appears on gradcafe
+#paste(rule,rule2,sep =", ")
+read_html(url) %>% 
+  html_nodes(
+    paste(rule,rule2, sep =", ")
+    ) %>%
+  html_text()
+
+
 
 ```
 
@@ -35,12 +52,20 @@ Modify the rule below to make a dataframe consisting of the titles, links, autho
 
 ```{r Challenge 2 answer}
 
-url <- "https://forum.thegradcafe.com/blogs/"
-rule <- "#ipsLayout_mainArea > section > div > article > div.cBlog_grid_item__body.ipsPad > div > h2 > span > a"
+url <- "https://forum.thegradcafe.com/"
 
-author_rule <- "#ipsLayout_mainArea > section > div > article > div.cBlog_grid_item__body.ipsPad > div > div > div.ipsPhotoPanel.ipsPhotoPanel_notPhone.ipsPhotoPanel_tiny > div > p > a"
+rule <- "#ipsLayout_mainArea > section > ol > li > ol > li > ul > li.ipsDataItem_lastPoster__title > a"
 
-date_rule <- "#ipsLayout_mainArea > section > div > article > div.cBlog_grid_item__body.ipsPad > div > div > div.ipsPhotoPanel.ipsPhotoPanel_notPhone.ipsPhotoPanel_tiny > div > p > time"
+#two modifications required:
+#add the requisite class for the author/date specifications: .ipsType_light.ipsType_blendLinks
+#add the nth child rule to slice the respective author or date depending on which one you need: :nth-child(<1|2>)
+
+#new author_rule
+author_rule <- "#ipsLayout_mainArea > section > ol > li > ol > li > ul > li.ipsType_light.ipsType_blendLinks > a:nth-child(1)"
+
+#new date rule
+date_rule <- "#ipsLayout_mainArea > section > ol > li > ol > li > ul > li.ipsType_light.ipsType_blendLinks > a:nth-child(2)"
+
 
 titles <- read_html(url) %>% 
   html_nodes(rule) %>%
@@ -69,12 +94,14 @@ View(df)
 ## Challenge 3
 Now that we can extract data from one page, let's make sure we can get every page.
 
-Write a function that lists every page of blog posts.
+Write a function that lists every page of recently online users (link="https://forum.thegradcafe.com/online/").
 
 ```{r Challenge 3 sample answer}
 
+url <- "https://forum.thegradcafe.com/online"
 # let's find out how many pages there are
-page_rule <- "li.ipsPagination_last a"
+page_rule <- "li.ipsPagination_last > a"
+#page_rule <- ""
 
 # the url of the last page has its page number in it
 page.count <- read_html(url) %>% 
@@ -82,10 +109,19 @@ page.count <- read_html(url) %>%
   html_attr('href')
 
 # scanning for the number
-page.count <- as.numeric(gsub("[^\\d]+", "", page.count, perl=TRUE))
+page.count <- gsub("[^\\d]+", "", page.count, perl=TRUE)[1]
 
 # I think this is the most simple solution
-all_the_links <- paste0("https://forum.thegradcafe.com/blogs/?page=", 1:page.count)
+all_the_links <- paste0("https://forum.thegradcafe.com/online/?page=", 1:page.count)
 
-all_the_links
+
+### If desired could wrap the above code in the following:
+#while(TRUE){
+#    
+#    Sys.sleep(300)
+#}
+# Serves as a potentially useful solution to keep track of how user traffic is changing, for example, every five minutes (not tested)
+
 ```
+
+
