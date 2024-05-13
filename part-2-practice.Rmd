@@ -25,7 +25,7 @@ Modify the rule below to list the titles of all the blog posts on the first page
 
 ```{r Challenge 1}
 
-url <- "https://forum.thegradcafe.com/blogs/"
+url <- "https://forum.thegradcafe.com/"
 
 rule <- "#ipsLayout_mainArea > section"
 
@@ -42,8 +42,10 @@ Modify the rule below to make a dataframe consisting of the titles, links, autho
 
 ```{r Challenge 2}
 
-url <- "https://forum.thegradcafe.com/blogs/"
-rule <- "#ipsLayout_mainArea > section > div > article > div.cBlog_grid_item__body.ipsPad > div > h2 > span > a"
+url <- "https://forum.thegradcafe.com"
+
+# rule
+rule <- "#ipsLayout_mainArea > section > ol > li > ol > li > ul > li.ipsDataItem_lastPoster__title > a"
 
 author_rule <- ""
 
@@ -63,17 +65,22 @@ links <- read_html(url) %>%
 
 # df <- data.frame(titles, links, authors, dates, stringsAsFactors = FALSE)
 
+## Hint: take a look at the last <li> attribute
+##        think about how you can changing that might allow you to add to the final <a> attribute to specify either date or time.
+## I encourage you to play with the selector tool to generate some ideas or alternative solutions!
+
 ```
 
 
 
 ## Challenge 3
-Now that we can extract data from one page, let's make sure we can get every page. Write a function that lists every page of blog posts.
+Now that we can extract data from one page, let's make sure we can get every page.
+Write a function that lists every page of recently online users (link=https://forum.thegradcafe.com/online/).
 
 For ideas, take a look at the URL structure:
 
 ```
-<a href="https://forum.thegradcafe.com/blogs/?page=2" data-page="2">2</a>
+<a href="https://forum.thegradcafe.com/online/?page=2" data-page="2">2</a>
 ```
 
 ```{r Challenge 3}
